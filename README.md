@@ -23,7 +23,7 @@
 ```bash
 pip install -U discord.py
 🚀 セットアップ手順
-# 1. Discord Developer Portal での設定
+**1. Discord Developer Portal での設定**
 
 1. Discord Developer Portal にアクセスし、Botを作成します。
 
@@ -31,17 +31,17 @@ pip install -U discord.py
 
 3. Reset Token を押して、Botのトークンをコピーします。
 
-2. コードの設定
+**2. コードの設定**
 ⁠autonomous_buddy.py⁠ を開き、以下の2箇所をご自身の環境に合わせて書き換えます。
 
-# 1. あなたのBotトークンを貼り付け
+ 1. あなたのBotトークンを貼り付け
 DISCORD_BOT_TOKEN = "ここにコピーしたトークン"
 
-# 2. メッセージを送信したいDiscordチャンネルのID（数字）
+ 2. メッセージを送信したいDiscordチャンネルのID（数字）
 TALK_CHANNEL_ID = 123456789012345678
 (※チャンネルIDは、Discordの開発者モードをONにしてチャンネル名を右クリック「チャンネルIDをコピー」で取得できます)
 
-3. Botの起動
+**3. Botの起動**
 ターミナルまたはコマンドプロンプトで以下を実行します。
 python autonomous_buddy.py
 コンソールに ⁠ログイン完了しました⁠ と表示されれば準備完了です！
