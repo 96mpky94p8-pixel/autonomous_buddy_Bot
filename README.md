@@ -23,10 +23,14 @@
 ```bash
 pip install -U discord.py
 🚀 セットアップ手順
-1. Discord Developer Portal での設定
+# 1. Discord Developer Portal での設定
+
 1. Discord Developer Portal にアクセスし、Botを作成します。
+
 2. Bot タブの「Privileged Gateway Intents」にある MESSAGE CONTENT INTENT を ON にします。
+
 3. Reset Token を押して、Botのトークンをコピーします。
+
 2. コードの設定
 ⁠autonomous_buddy.py⁠ を開き、以下の2箇所をご自身の環境に合わせて書き換えます。
 
