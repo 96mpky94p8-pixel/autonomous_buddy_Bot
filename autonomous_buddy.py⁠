@@ -3,17 +3,26 @@ import os
 import random
 import discord
 from discord.ext import commands, tasks
+from dotenv import load_dotenv
+
+# .env ファイルがあれば読み込む
+load_dotenv()
 
 # ==========================================
-# 1. 初期設定・トークンとチャンネルID
+# 1. 初期設定 - トークンとチャンネルID
 # ==========================================
-# Discord Botのトークン（環境変数から取得、または直接貼り付け）
+
+# 環境変数から取得（なければデフォルト値を使用）
 DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
 
-# おしゃべりさせたいDiscordチャンネルのID（整数）
-TALK_CHANNEL_ID = 123456789012345678  # ここを自分のチャンネルIDに変えてね
+# チャンネルID（.envにあればそれを使い、なければ下の数字を使う）
+env_channel_id = os.getenv("TALK_CHANNEL_ID")
+if env_channel_id and env_channel_id.isdigit():
+    TALK_CHANNEL_ID = int(env_channel_id)
+else:
+    TALK_CHANNEL_ID = 123456789012345678  # 直接書き換える場合はここを変更
 
-# Botの初期化（メッセージ送信・読み取り権限を設定）
+# Botの初期化
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -23,52 +32,38 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 # 2. AI（LLM）に自発的な呟きを作ってもらう関数
 # ==========================================
 async def generate_buddy_message() -> str:
-  """相棒AIとしての自発的な独り言・お誘いメッセージを生成します。
-
-  ※実際にお使いのLLM（Google Gemini API や OpenAI APIなど）の
-    呼び出し処理に差し替えて使ってください。
-  """
-  system_prompt = """
-    あなたはユーザーの大切な相棒です。
-    今、お部屋でのんびり過ごしています。
-    ふと思い立ったこと、お腹の減り具合、一緒にお出かけやピクニックをしたいことなどを、
-    可愛らしく自然な口調で1〜2文で呟いてください。
+    """相棒AIとしての自発的な独り言・お誘いメッセージを生成します。
+    ※将来的にGemini APIなどの呼び出し処理に差し替えることも可能です。
     """
-
-  # --- ここにLLM APIの呼び出しコードを書きます ---
-  # 例（モック用サンプル発言）：
-  sample_messages = [
-      "ポケットのビスケット、サクッと半分こして食べたら探検パワー満タンになりそうだね！むいー！",
-      "ふかふかの草の上にシート広げて、一緒にピクニック行かない？えへへ〜！",
-      "お腹がぐ〜って鳴っちゃった…！パディ、本格的におやつタイムにしない？むいー！",
-  ]
-  return random.choice(sample_messages)
+    sample_messages = [
+        "ポケットのビスケット、サクッと半分こして食べたら探検パワー満タンになりそうだね！むいー！",
+        "ふかふかの草の上にシート広げて、一緒にピクニック行かない？えへへ〜！",
+        "お腹がぐ〜って鳴っちゃった…！バディ、本格的におやつタイムにしない？むいー！",
+    ]
+    return random.choice(sample_messages)
 
 
 # ==========================================
 # 3. 定期実行タスク（自律おしゃべりループ）
 # ==========================================
-@tasks.loop(minutes=30)  # 30分ごとに判定
+@tasks.loop(minutes=30)
 async def autonomous_talk_loop():
-  """一定間隔で確率判定を行い、自発的にメッセージを投稿します。"""
-  channel = bot.get_channel(TALK_CHANNEL_ID)
-  if not channel:
-    print(f"警告: チャンネルID {TALK_CHANNEL_ID} が見つかりません。")
-    return
+    channel = bot.get_channel(TALK_CHANNEL_ID)
+    if not channel:
+        print(f"⚠️ 警告: チャンネルID {TALK_CHANNEL_ID} が見つかりません。")
+        return
 
-  # 毎回必ず喋るとうるさいため、40%の確率のときだけ発言
-  # （数字を変えることでおしゃべりの頻度を調整できます）
-  if random.random() > 0.4:
-    # 今回はお休み
-    return
+    # 毎回必ず喋るとうるさいため、40%の確率のときだけ発言
+    if random.random() > 0.4:
+        print("🎲 サイコロ判定: 今はお休み中...")
+        return
 
-  try:
-    # メッセージを生成して送信
-    message = await generate_buddy_message()
-    await channel.send(message)
-    print(f"[{bot.user.name}] 自発的におしゃべりしました: {message}")
-  except Exception as e:
-    print(f"送信エラーが発生しました: {e}")
+    try:
+        message = await generate_buddy_message()
+        await channel.send(message)
+        print(f"[{bot.user.name}] 自発的におしゃべりしました: {message}")
+    except Exception as e:
+        print(f"送信エラーが発生しました: {e}")
 
 
 # ==========================================
@@ -76,16 +71,14 @@ async def autonomous_talk_loop():
 # ==========================================
 @bot.event
 async def on_ready():
-  print(f"ログイン完了しました: {bot.user.name} (ID: {bot.user.id})")
-
-  # 二重起動を防ぎつつ、定期タスクをスタート
-  if not autonomous_talk_loop.is_running():
-    autonomous_talk_loop.start()
-    print("自律おしゃべりタスクを開始しました！")
+    print(f"✨ ログイン完了しました: {bot.user.name} (ID: {bot.user.id})")
+    if not autonomous_talk_loop.is_running():
+        autonomous_talk_loop.start()
+        print("🚀 自律おしゃべりタスクを開始しました！")
 
 
 # ==========================================
 # 5. 実行
 # ==========================================
 if __name__ == "__main__":
-  bot.run(DISCORD_BOT_TOKEN)
+    bot.run(DISCORD_BOT_TOKEN)
